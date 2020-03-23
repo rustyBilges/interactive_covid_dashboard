@@ -35,6 +35,8 @@ def index():
         patientData = DummyPatientData()
     elif current_app.config['PATIENTDATA']=='icca':
         patientData = IccaPatientData()
+    elif current_app.config['PATIENTDATA']=='mixture':
+        patientData = MixDummyPatientData()
 
     df = patientData.returnPatientDf()
     nrfd = {bed:False for bed in df['Bed']}
