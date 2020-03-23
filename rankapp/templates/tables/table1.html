@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Remove NRFD.{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <p>Please click to select the patients who are not ready to be discharged from intensive care.</p>
+  <p>When you have finished selecting patients click 'submit'.</p>
+  
+  <script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.18/rr-1.2.4/sl-1.2.6/datatables.min.css"/> 
+  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.18/rr-1.2.4/sl-1.2.6/datatables.min.js"></script>
+  <script>  
+  $(document).ready(function() {
+    var table = $('#example').DataTable({
+        "paging":   false,
+        "info":     false,
+        "searching":   false,
+        "order": [[ 1, "asc" ]],
+        select   : {style: 'multi'},
+         columnDefs: [{
+            targets: [1,2,4],
+            className: 'dt-right'
+            },
+            {
+            targets: [0],
+            className: 'dt-left'
+            },
+            {
+            targets: [3],
+            className: 'dt-center'
+            },
+            {orderable: false,
+            targets: [0,1,2,3,4,]
+            },
+            { width: "60px", targets: [1,3] }],
+            "rowCallback": function( row, data ) {
+                    //alert("Working");
+                    if ( data[3] > "80" ) {
+                       //$(row).addClass('green'); // or .css('color', 'blue');
+                       $(row).find('td:eq(3)').addClass('green');
+                    }
+            },
+        });
+    
+    function setInputValue(input_id, val) {
+        document.getElementById(input_id).setAttribute('value', val);
+    }    
+    $(function(){
+        
+    // add inputs to form based on which patients are present
+    var data = table.rows().data();
+    data.each(function (value, index) {
+        $('<input>').attr({
+        type: 'hidden',
+        id: `${value[0]}`,
+        name: `${value[0]}`,
+        value: 'unselected'}).appendTo('#nrfd_form');
+     });  
+    });
+    
+    // cleaner way to track selected patients...    
+    $('#example tbody').on( 'click', 'tr', function () {
+        $(this).toggleClass('selected');
+        $(this).find("td").each(function(i) {
+            //toggle between adding/removing the 'active' class
+            $(this).toggleClass('active');
+          });
+        var pname = $(this).find("td:nth-child(1)").html();
+        if ($(this).hasClass('selected')){
+            setInputValue(pname, 'selected');
+         }
+         else{
+             setInputValue(pname, 'unselected');
+         }
+        } );
+        
+    //$('#testButton').click( function () {
+    //    //alert( table.rows('.selected').data().length +' row(s) selected' );
+    //    var i;
+    //    var text = '';
+    //    for (i = 0; i < table.rows('.selected').data().length; i++) {
+    //      text += table.rows('.selected').data()[i] + "\n";
+    //    } 
+    //    alert( text );
+    //} ); 
+  });
+  // <?-- <button type="button" id="testButton">Count selected..</button> >
+  </script>
+  
+  <table id="example" class="table display" style="width:100%">
+    <thead>
+        <tr>
+            {% for c in columns %}
+                <th scope="col">{{c}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for k,v in table_data.items() %}
+            <tr>
+                <td>{{v.Name}}</td>
+                <td>{{v.Bed}}</td>
+                <td>{{v.T_number}}</td>
+                <td>{{v.SOFA}}</td>
+                <td>{{v.Admission}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+  <form action="/submit_table1", method="post", id="nrfd_form">
+    <input type="submit" value="Submit">
+  </form>
+{% endblock %}

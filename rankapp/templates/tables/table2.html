@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Rank remaining patients.{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <p>Please drag to rank patients according to their readiness for discharge.</p>
+  <p>When you have finished ranking click 'submit'.</p>
+  
+
+  <script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.18/rr-1.2.4/sl-1.2.6/datatables.min.css"/> 
+  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.18/rr-1.2.4/sl-1.2.6/datatables.min.js"></script>
+  <script>  
+  $(document).ready(function() {
+    var table = $('#example').DataTable({
+        "paging":   false,
+        "info":     false,
+        "searching":   false,
+        rowReorder: {
+            selector: 'tr'
+        },
+        "order": [[ 0, "asc" ]],
+        select   : {style: 'api'},
+         columnDefs: [{
+            targets: [2,3,4,5],
+            className: 'dt-right'
+            },
+            {
+            targets: [0,1],
+            className: 'dt-left'
+            },
+            {orderable: false,
+            targets: [0,1,2,3,4,5]
+            }]
+        });
+    function setInputValue(input_id, val) {
+        document.getElementById(input_id).setAttribute('value', val);
+    }
+    
+    $(function(){
+    // add inputs to form based on which patients are present
+    var data = table.rows().data();
+    data.each(function (value, index) {
+     //console.log(`For index ${index}, data value is ${value}`);
+        $('<input>').attr({
+        type: 'hidden',
+        id: `${value[1]}`,
+        name: `${value[1]}`,
+        value: `${value[0]}`}).appendTo('#nrfd_form');
+      });        
+    });
+    // update stored rank when rows are reordered:
+    table.on( 'row-reorder', function ( e, diff, edit ) {
+        for ( var i=0, ien=diff.length ; i<ien ; i++ ) {
+            var rowData = table.row( diff[i].node ).data();
+            setInputValue(rowData[1], diff[i].newData);
+        }
+     });    
+    
+  });
+  </script>
+  <table id="example" class="table display" style="width:100%">
+    <thead>
+        <tr>    
+            {% for c in columns %}
+                <th scope="col">{{c}}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        
+        {% for k,v in table_data.items() %}
+            <tr>
+                <td>{{v.Rank}}</td>
+                <td>{{v.Name}}</td>
+                <td>{{v.Bed}}</td>
+                <td>{{v.T_number}}</td>
+                <td>{{v.Age}}</td>
+                <td>{{v.Admission}}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+    </table>
+    
+  <form action="/submit_table2", method="post", id="nrfd_form">
+    <input type="submit" value="Submit">
+  </form>
+{% endblock %}

@@ -1,0 +1,4 @@
+include rankapp/schema.sql
+graft rankapp/static
+graft rankapp/templates
+global-exclude *.pyc
