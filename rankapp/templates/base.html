@@ -1,8 +1,9 @@
 <!doctype html>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{% block title %}{% endblock %} - Rankapp</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 <nav>
-  <h1>RankApp</h1>
+  <h1>Interactive ICU Dashboard</h1>
   <ul>
     {% if g.user %}
       <li><span>{{ g.user['username'] }}</span>

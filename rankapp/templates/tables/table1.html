@@ -1,49 +1,68 @@
 {% extends 'base.html' %}
 
-{% block header %}
-  <h1>{% block title %}Remove NRFD.{% endblock %}</h1>
-{% endblock %}
-
 {% block content %}
-  <p>Please click to select the patients who are not ready to be discharged from intensive care.</p>
-  <p>When you have finished selecting patients click 'submit'.</p>
   
   <script
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.18/rr-1.2.4/sl-1.2.6/datatables.min.css"/> 
-  <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.18/rr-1.2.4/sl-1.2.6/datatables.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.13/css/dataTables.bootstrap.min.css"/> 
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/1.10.20/js/dataTables.bootstrap.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/dataTables.buttons.min.js"></script>
+  <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.1/js/buttons.html5.min.js"></script>
   <script>  
   $(document).ready(function() {
+  
+    function rag_colour(row, data, col, lb, ub){
+        if ( data[col] <= lb ) {
+           $(row).find('td:eq(' + col + ')').addClass('green');
+        }
+        else if ( data[col] <= ub ) {
+           $(row).find('td:eq(' + col + ')').addClass('amber');
+        }
+        else if ( data[col] > ub ) {
+           $(row).find('td:eq(' + col + ')').addClass('red');
+        }
+    }
     var table = $('#example').DataTable({
         "paging":   false,
         "info":     false,
-        "searching":   false,
-        "order": [[ 1, "asc" ]],
-        select   : {style: 'multi'},
-         columnDefs: [{
-            targets: [1,2,4],
-            className: 'dt-right'
-            },
+        "searching":   true,
+        "order": [[ 0, "asc" ]],
+        "dom": 'rt',
+        "orderCellsTop": true,
+        select   : {style: 'single'},
+         columnDefs: [
+            //{
+            //targets: [1,2,4],
+            //className: 'dt-right'
+            //},
             {
             targets: [0],
             className: 'dt-left'
             },
             {
-            targets: [3],
+            targets: [1,2,3,4,5,6,7,8,9,10],
             className: 'dt-center'
             },
-            {orderable: false,
-            targets: [0,1,2,3,4,]
-            },
-            { width: "60px", targets: [1,3] }],
+            //{orderable: false,
+            //targets: [0,1,2,3,4,]
+            //},
+            { width: "60px", targets: [1,2,3,4,5,6,9] }
+            ],
             "rowCallback": function( row, data ) {
                     //alert("Working");
-                    if ( data[3] > "80" ) {
+                    if ( data[1] > 10 ) {
                        //$(row).addClass('green'); // or .css('color', 'blue');
-                       $(row).find('td:eq(3)').addClass('green');
+                       $(row).find('td:eq(1)').addClass('red');
                     }
+                    if ( data[10] == "positive" ) {
+                       $(row).find('td:eq(10)').addClass('red');
+                    }
+                    rag_colour(row, data, 9, 0, 0.2)
+                    rag_colour(row, data, 2, 6, 8)          
             },
         });
     
@@ -53,31 +72,44 @@
     $(function(){
         
     // add inputs to form based on which patients are present
-    var data = table.rows().data();
-    data.each(function (value, index) {
-        $('<input>').attr({
-        type: 'hidden',
-        id: `${value[0]}`,
-        name: `${value[0]}`,
-        value: 'unselected'}).appendTo('#nrfd_form');
-     });  
+    //var data = table.rows().data();
+    //data.each(function (value, index) {
+    //    $('<input>').attr({
+    //    type: 'hidden',
+    //    id: `${value[0]}`,
+    //    name: `${value[0]}`,
+    //    value: 'unselected'}).appendTo('#nrfd_form');
+    // });  
     });
     
-    // cleaner way to track selected patients...    
+    // Track selected patients (single not multi select).
     $('#example tbody').on( 'click', 'tr', function () {
-        $(this).toggleClass('selected');
-        $(this).find("td").each(function(i) {
-            //toggle between adding/removing the 'active' class
-            $(this).toggleClass('active');
-          });
-        var pname = $(this).find("td:nth-child(1)").html();
-        if ($(this).hasClass('selected')){
-            setInputValue(pname, 'selected');
-         }
-         else{
-             setInputValue(pname, 'unselected');
-         }
-        } );
+    if ( $(this).hasClass('selected') ) {
+        $(this).removeClass('selected');
+        document.getElementById("submit_patient").disabled = true;
+    }
+    else {
+        table.$('tr.selected').removeClass('selected');
+        $(this).addClass('selected');
+        setInputValue("selectedPatient", $(this).find('td:eq(0)').text())
+        document.getElementById("submit_patient").disabled = false;
+        //alert($(selectedPatient).val())
+    }
+    } );
+    //$('#example tbody').on( 'click', 'tr', function () {
+    //    $(this).toggleClass('selected');
+    //    $(this).find("td").each(function(i) {
+    //        //toggle between adding/removing the 'active' class
+    //        $(this).toggleClass('active');
+    //      });
+    //    var pname = $(this).find("td:nth-child(1)").html();
+    //    if ($(this).hasClass('selected')){
+    //        setInputValue(pname, 'selected');
+    //     }
+    //     else{
+    //         setInputValue(pname, 'unselected');
+    //     }
+    //    } );
         
     //$('#testButton').click( function () {
     //    //alert( table.rows('.selected').data().length +' row(s) selected' );
@@ -88,10 +120,66 @@
     //    } 
     //    alert( text );
     //} ); 
+    
+    // from here: http://live.datatables.net/tamixov/1/edit
+    $("#example tfoot th").each( function ( i ) {
+		
+		if ($(this).text() !== '') {
+	        var isBedColumn = (($(this).text() == 'Bed') ? true : false);
+	        var isPosColumn = (($(this).text() == 'Pos') ? true : false);
+	        var isCovColumn = (($(this).text() == 'COVID19') ? true : false);
+	        
+	        if (isBedColumn ||isPosColumn || isCovColumn){
+    			var select = $('<select><option value=""></option></select>')
+    	            .appendTo( $(this).empty() )
+    	            .on( 'change', function () {
+    	                var val = $(this).val();
+    					
+    					if (isBedColumn){
+    					table.column( i )
+        	                    .search( val )
+        	                    .draw();
+        					}
+    					else{
+        	                table.column( i )
+        	                    .search( val ? '^'+$(this).val()+'$' : val, true, false )
+        	                    .draw();
+    	                   }
+    	            } );
+	           }
+	           else {$(this).html("<p> </p>");}
+			
+			if (isBedColumn){
+    			select.append('<option value="GICU">GICU</option>')
+    			select.append('<option value="CICU">CICU</option>')
+		    }
+		    else if (isPosColumn || isCovColumn){
+    		    table.column( i ).data().unique().sort().each( function ( d, j ) {  
+    					select.append( '<option value="'+d+'">'+d+'</option>' );
+    		    });
+		    }
+	       
+		}
+    } );
   });
   // <?-- <button type="button" id="testButton">Count selected..</button> >
   </script>
   
+  <body>
+  <p class="bottom-three"> </p>
+  <div class="button-container">
+  <form action="/select_patient", method="post", id="patient_select_form">
+    <input type="hidden" id="selectedPatient" name="selectedPatient" value="">
+    <input type="submit" value="View selected patient" id="submit_patient" disabled=true>
+  </form> 
+  
+  <form action="/ward_view", method="post", id="ward_view_form">
+    <input type="submit" value="Go to ward view", id="ward_view">
+  </form>
+  
+  </div>
+  
+  <div class="container">
   <table id="example" class="table display" style="width:100%">
     <thead>
         <tr>
@@ -100,19 +188,33 @@
             {% endfor %}
         </tr>
     </thead>
+	<tfoot>
+		<tr>
+            {% for c in columns %}
+                <th scope="col">{{c}}</th>
+            {% endfor %}
+		</tr>
+	</tfoot>
+	
     <tbody>
         {% for k,v in table_data.items() %}
             <tr>
-                <td>{{v.Name}}</td>
                 <td>{{v.Bed}}</td>
-                <td>{{v.T_number}}</td>
                 <td>{{v.SOFA}}</td>
-                <td>{{v.Admission}}</td>
+                <td>{{v.VT_kg}}</td>
+                <td>{{v.FiO2}}</td>
+                <td>{{v.PEEP}}</td>
+                <td>{{v.pH}}</td>
+                <td>{{v.BE}}</td>
+                <td>{{v.FB}}</td>
+                <td>{{v.Pos}}</td>
+                <td>{{v.Norad}}</td>
+                <td>{{v.COVID19}}</td>
             </tr>
         {% endfor %}
     </tbody>
     </table>
-  <form action="/submit_table1", method="post", id="nrfd_form">
-    <input type="submit" value="Submit">
-  </form>
+    </div>
+    </body> 
+   
 {% endblock %}

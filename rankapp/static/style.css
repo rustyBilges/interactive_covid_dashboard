@@ -1,5 +1,5 @@
 html { font-family: sans-serif; background: #eee; padding: 1rem; }
-body { max-width: 960px; margin: 0 auto; background: white; }
+body { max-width: 1960px; margin: 0 auto; background: white; }
 h1 { font-family: serif; color: #377ba8; margin: 1rem 0; }
 a { color: #377ba8; }
 hr { border: none; border-top: 1px solid lightgray; }
@@ -46,9 +46,20 @@ th.sorting_desc::after {
 }
 
 .red {
-background-color: red !important;
+background-color: rgba(255, 0, 0, 0.3) !important;
 }
 .green {
 background-color: rgba(0, 255, 0, 0.3) !important;
 }
+.amber {
+background-color: rgba(255, 191, 0, 0.3) !important;
+}
 tr { height: 60px; }
+
+.button-container form,
+.button-container form div {
+    display: inline;
+}
+.bottom-three {
+     margin-bottom: 3px;
+  }

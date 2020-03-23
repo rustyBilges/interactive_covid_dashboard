@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  
+  
+  
+  <body>
+  <p class="bottom-three"> This will visualise patient specific data for the patient you selected: 
+  {{patient}}.
+  </p>
+  <p>
+  These plots can be made fully interactive, allowing you to select the timebase or the variable you want to view at the click of button. E.g. view PEEP over last 24hrs/48hrs/LOS.
+  </p>
+  </body>
+  
+  <img src="data:image/png;base64, {{ plot_url }}", alt="Chart">
+  
+  <form action="/back_to_dashboard", method="post", id="back_form">
+    <input type="submit" value="Back to dashboard.", id="back">
+  </form>
+  
+{% endblock %}
