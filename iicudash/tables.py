@@ -13,9 +13,9 @@ from flask import (
 )
 from werkzeug.exceptions import abort
 
-from rankapp.auth import login_required, logout
-from rankapp.db import get_db
-from rankapp.patient_db import *
+from iicudash.auth import login_required, logout
+from iicudash.db import get_db
+from iicudash.patient_db import *
 
 bp = Blueprint('tables', __name__)
 
