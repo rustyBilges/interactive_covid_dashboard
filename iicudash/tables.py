@@ -16,6 +16,7 @@ from werkzeug.exceptions import abort
 from iicudash.auth import login_required, logout
 from iicudash.db import get_db
 from iicudash.patient_db import *
+from iicudash.helper import *
 
 bp = Blueprint('tables', __name__)
 
@@ -50,16 +51,29 @@ def index():
 @login_required
 def patient_view():
     global df, patient
+    
+    factory = Intervention_Factory()
+    sofa = Sofa_Score(factory)
     #df_selected = df
     img = io.BytesIO()
     #fig = Figure()
-    
-    plt.plot([1,2,3,4,5,6,7,8,9,10,11,12], [24,22,22,23,19,20,17,15,17,13,10,10])
-    plt.title("SOFA score during ICU admission")
-    plt.xlabel("day of admission")
-    plt.ylabel("SOFA score")
-    plt.ylim([0,24])#
-    plt.xlim([1,12])
+    i_name = 'FiO2'
+    intervention = Dummy_Intervention([.2,.3], [0.6,0.8], [.08,.07], i_name)
+    series = intervention.get_series()
+    print(series)
+    # CHECK FOR EMPTY DATA HERE:
+    plt.figure()
+    if series is not None:
+        plt.plot(series['time'], series[i_name], '+-')
+        x = intervention.get_most_recent_value()
+        plt.plot(x[0], x[1], 'or')
+        x = intervention.get_worst_value()
+        plt.plot(x[0], x[1], 'og')
+        plt.title(i_name + " during ICU admission")
+        plt.xlabel("day of admission")
+        plt.ylabel(i_name)
+        #plt.ylim([0,24])#
+        #plt.xlim([1,12])
     plt.savefig(img, format='png')
     plt.close()
     img.seek(0)
