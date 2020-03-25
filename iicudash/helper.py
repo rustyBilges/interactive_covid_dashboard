@@ -169,13 +169,13 @@ class Dummy_Intervention(implements(I_Intervention)):
     
 class Icca_Intervention(implements(I_Intervention)):
     
-    def __init__(self, interventions, attributes, columns, name, encounterId, table="PtAssessment"):
+    def __init__(self, interventions, attributes, columns, name, encounterId, tables):
 
         self.name = name
         self.start = None
         self.end = None
         self.encounterId = encounterId
-        self.table = table
+        self.tables = tables
         self.df = self.populate(zip(interventions, attributes), columns)
         
     def populate(self, interventions_attributes, column):
@@ -190,7 +190,7 @@ class Icca_Intervention(implements(I_Intervention)):
                 INNER JOIN D_Attribute DA
                 ON P.attributeId=DA.attributeId
                 WHERE P.encounterId=%d AND D.interventionId=%d AND DA.attributeId=%d
-                """ %(column[i], self.table, self.encounterId, inter, attr)
+                """ %(column[i], self.tables[i], self.encounterId, inter, attr)
             data.append(icca_query(sql))
         
         df = data[0]
@@ -263,10 +263,11 @@ class Icca_Intervention(implements(I_Intervention)):
     
 class Intervention_Factory():
     
-    def __init__(self, dummy=True):
+    def __init__(self, dummy=True, encounterId=None):
         
         self.dummy = dummy
         self.mapping = DUMMY_MAPPING if self.dummy else MAPPING 
+        self.encounterId = encounterId
         
     def get(self, intervention):
         params = self.mapping[intervention]
@@ -276,6 +277,14 @@ class Intervention_Factory():
                                               params['attributeIds'],
                                               params['column'],
                                               intervention)
+        else:
+            return Icca_Intervention(params['interventionIds'],
+                                              params['attributeIds'],
+                                              params['column'],
+                                              intervention, 
+                                              self.encounterId,
+                                              params['table'])
+            
     
 class Sofa_Score():
     ## At the moment this sets component to zero is variable not recorded during previous 24 hours
