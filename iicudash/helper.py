@@ -203,8 +203,8 @@ class Icca_Intervention(implements(I_Intervention)):
         cols = [c for c in df.columns if c!='time']
         df = df[['time'] + cols]
         df.drop_duplicates(inplace=True)
-        print(self.name)
-        print(df.columns)
+        
+        #print(df.columns)
         #df.reset_index(inplace=True, drop=True)
         ## then collapse into a single time series (with preference)
         for i in range(len(df.columns)-2):
@@ -215,7 +215,13 @@ class Icca_Intervention(implements(I_Intervention)):
         cols = df.columns[0:2]
         df = df.loc[:,cols].dropna()
         df.rename(columns={cols[1] : self.name}, inplace=True)
-        print(df)
+        df[self.name] = df[self.name].astype(float)
+        
+        if self.name=='FiO2':
+            df[self.name] /= float(100)
+        
+        #print(self.name)
+        #print(df)
         
         self.start = df.time.min()
         self.end = df.time.max()
@@ -301,7 +307,7 @@ class Sofa_Score():
     ## Also, this takes worst FiO2 and worst PaO2 seaprately.
     ## Defines mechanically ventilated as ANY peep in last 24 hours
     
-    def __init__(self, factory, time=None):
+    def __init__(self, factory, time=None, verbose=False):
 
         self.factory = factory
         self.interventions = {'GCS' : self.factory.get('GCS'),
@@ -330,12 +336,12 @@ class Sofa_Score():
         self.score = np.sum([self.nervous, self.cardio, self.liver, 
                             self.coagulation, self.kidneys, self.respiratory])
         
-        print(self.nervous)
-        print(self.cardio)
-        print(self.liver)
-        print(self.coagulation)
-        print(self.kidneys)
-        print(self.respiratory)
+        print("Nervous: ", self.nervous)
+        print("Cardio: ",self.cardio)
+        print("Liver: ",self.liver)
+        print("Coag: ",self.coagulation)
+        print("Kidney: ",self.kidneys)
+        print("Resp: ",self.respiratory)
         print("Total score = ", self.score)
         
     def calculate_nervous(self):
@@ -411,13 +417,13 @@ class Sofa_Score():
         liver = 0
         if worst is not None:
             val = worst.Bilirubin
-            if (val<2.0) & (val>=1.2):
+            if (val<33) & (val>=20):
                 liver = 1
-            elif (val<6.0) & (val>=2.0):
+            elif (val<102) & (val>=33):
                 liver = 2
-            elif (val<12.0) & (val>=6.0):
+            elif (val<12.0) & (val>=102):
                 liver = 3
-            elif val>=12.0:
+            elif val>=204:
                 liver = 4
         return liver
     
@@ -445,13 +451,13 @@ class Sofa_Score():
         kidneys = 0
         if worst is not None:
             val = worst.Creatinine
-            if (val<2.0) & (val>=1.2):
+            if (val<171) & (val>=110):
                 kidneys = 1
-            elif (val<3.5) & (val>=2.0):
+            elif (val<300) & (val>=171):
                 kidneys = 2
-            elif (val<5.0) & (val>=3.5):
+            elif (val<5.0) & (val>=300):
                 kidneys = 3
-            elif val>=5.0:
+            elif val>=440:
                 kidneys = 4
         return kidneys
     
@@ -475,15 +481,15 @@ class Sofa_Score():
         
         val = worst_po2.PO2 / float(worst_fio2.FiO2)
     
-        if (val<=400) & (val>300):
+        if (val<=53.3) & (val>40):
             respiratory = 1
-        elif (val<=300):
+        elif (val<=40):
             respiratory = 2
             
-        if (val<=200) & mechvent:
-            respiratory = 3
-        elif (val<=100) & mechvent:
-                respiratory = 4
+        if (val<=13.3) & mechvent:
+            respiratory = 4
+        elif (val<=26.7) & mechvent:
+                respiratory = 3
         return respiratory
     
 
@@ -494,11 +500,11 @@ if __name__=='__main__':
     
     sql = 'SELECT encounterId, clinicalUnitId FROM PtCensus WHERE outTime is null and clinicalUnitId=5'
     patients = icca_query(sql)
-    eid = patients.iloc[0].encounterId
+    eid = patients.iloc[np.random.randint(0,len(patients))].encounterId
     
     
     factory = Intervention_Factory(dummy=DUMMY, encounterId=eid)
-    sofa = Sofa_Score(factory)
+    sofa = Sofa_Score(factory, verbose=True)
     
     plt.figure(figsize=(20,20))
     for i,key in enumerate(sofa.interventions):
