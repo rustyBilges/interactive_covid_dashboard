@@ -27,7 +27,7 @@ def icca_query(sql):
     
     try:
         server = "ubhnt175.ubht.nhs.uk"
-        database = "CISReportingDB"
+        database = "CISReportingActiveDB0"
         tc ="yes"  
     
         cnxn = pyodbc.connect('trusted_connection='+tc+';DRIVER={SQL Server};SERVER='+server+';DATABASE='+database)
@@ -196,7 +196,16 @@ class Icca_Intervention(implements(I_Intervention)):
         df = data[0]
         for d in data[1:]:
             df = pd.merge_ordered(df,d, how='outer', on='time')
-        
+            cols = [c for c in df.columns if c!='time']
+            colr = {col : 'col%d' %i for i,col in enumerate(cols)}
+            df.rename(columns=colr, inplace=True)
+            
+        cols = [c for c in df.columns if c!='time']
+        df = df[['time'] + cols]
+        df.drop_duplicates(inplace=True)
+        print(self.name)
+        print(df.columns)
+        #df.reset_index(inplace=True, drop=True)
         ## then collapse into a single time series (with preference)
         for i in range(len(df.columns)-2):
             colA = df.columns[-2 - (i*1)]
@@ -206,6 +215,7 @@ class Icca_Intervention(implements(I_Intervention)):
         cols = df.columns[0:2]
         df = df.loc[:,cols].dropna()
         df.rename(columns={cols[1] : self.name}, inplace=True)
+        print(df)
         
         self.start = df.time.min()
         self.end = df.time.max()
@@ -307,7 +317,7 @@ class Sofa_Score():
                               'FiO2' : self.factory.get('FiO2'),
                               'PO2' : self.factory.get('PO2')}
         
-        max_time = np.max([self.interventions[key].df.time.max() for key in self.interventions])
+        max_time = np.max(pd.Series([self.interventions[key].df.time.max() for key in self.interventions]).dropna())
         self.time = max_time if time is None else time
     
         self.nervous = self.calculate_nervous()
@@ -480,11 +490,17 @@ class Sofa_Score():
 if __name__=='__main__':
     
     import matplotlib.pyplot as plt
-    DUMMY = True
+    DUMMY = False
     
-    factory = Intervention_Factory(dummy=DUMMY)
+    sql = 'SELECT encounterId, clinicalUnitId FROM PtCensus WHERE outTime is null and clinicalUnitId=5'
+    patients = icca_query(sql)
+    eid = patients.iloc[0].encounterId
+    
+    
+    factory = Intervention_Factory(dummy=DUMMY, encounterId=eid)
     sofa = Sofa_Score(factory)
     
+    plt.figure(figsize=(20,20))
     for i,key in enumerate(sofa.interventions):
         plt.subplot(4,3,i+1)
         series = sofa.interventions[key].get_series()
@@ -495,6 +511,8 @@ if __name__=='__main__':
             plt.ylabel(key)
     plt.tight_layout()
     plt.show()
+    
+    print('EncounterId = ' + str(eid))
         
     
     
