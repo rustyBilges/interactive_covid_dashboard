@@ -5,6 +5,8 @@ from flask import current_app
 import numpy.random as rnd
 import numpy as np
 
+from iicudash.helper import icca_query, Intervention_Factory, Sofa_Score
+
 class I_PatientData(Interface):
 
     def returnPatientDf(self):
@@ -44,7 +46,7 @@ class MixDummyPatientData(implements(I_PatientData)):
 #           try:
 
             server = "ubhnt175.ubht.nhs.uk"
-            database = "CISReportingDB"
+            database = "CISReportingActiveDB0"
             tc ="yes"  
 
             cnxn = pyodbc.connect('trusted_connection='+tc+';DRIVER={SQL Server};SERVER='+server+';DATABASE='+database)
@@ -60,47 +62,33 @@ class MixDummyPatientData(implements(I_PatientData)):
                ORDER BY P.inTime desc;""")    
 
             beds = []
+            tnums = []
         
             row = cursor.fetchone()
             while row:
                 #print(row)
                 beds.append(row[4])
+                tnums.append(row[2])
                 row =cursor.fetchone()
 
             cursor.close()
             del cursor
             cnxn.close()
             
-            cnxn = pyodbc.connect('trusted_connection='+tc+';DRIVER={SQL Server};SERVER='+server+';DATABASE='+database)
-            cursor = cnxn.cursor()
-            cursor.execute("""SELECT B.bedLabel, P.valueNumber, P.chartTime
-               FROM PtAssessment P
-               INNER JOIN D_Encounter D
-               ON P.encounterId=D.encounterId 
-               INNER JOIN PtBedStay B
-               ON P.encounterId=B.encounterId 
-               WHERE P.clinicalUnitId in (5,8) and B.outTime IS NULL AND P.interventionId=3036;""")    
-
-            
-            PEEP = []
-            chartTime = []
-        
-            row = cursor.fetchone()
-            while row:
-                #print(row)
-                PEEP.append(row[1])
-                chartTime.append(row[2])
-                row =cursor.fetchone()
-
-            cursor.close()
-            del cursor
-            cnxn.close()
-
-            print(PEEP)            
-            print(chartTime)
-
+            sofas = []
+            sofa = 0
+            for b,t in zip(beds,tnums):
+                sql = "SELECT TOP 1 sofa FROM UHB.SOFA_python WHERE bedLabel='%s' and lifeTimeNumber='%s' ORDER BY chartTime desc;" %(b,t)
+                _data = icca_query(sql, db='CISReportingDB')
+                if _data.empty:
+                    print('Warning: patient not found.')
+                    sofa = 0
+                else:
+                    sofa = _data.iloc[0].sofa
+                sofas.append(sofa)
+                
             self.df['Bed'] = beds
-            self.df['SOFA'] = rnd.randint(5,24,size=len(beds))
+            self.df['SOFA'] = sofas#rnd.randint(5,24,size=len(beds))
             self.df['VT_kg'] = np.around(5.5 * rnd.randn(len(beds)) + 6, 1)
             self.df['FiO2'] = np.around(5.5 * rnd.randn(len(beds)) + 6, 1)
             self.df['PEEP'] = np.around(5.5 * rnd.randn(len(beds)) + 6, 1)
@@ -111,6 +99,7 @@ class MixDummyPatientData(implements(I_PatientData)):
             self.df['Norad'] = np.around(1.5 * rnd.randn(len(beds)) + 0.2, 2)*rnd.randint(2,size=len(beds))
             self.df['COVID19'] = np.around(5.5 * rnd.randn(len(beds)) + 6, 1)#['sent', 'pending', 'negative', 'positive', 'pending', 'sent', 'positive', 'positive', 'negative', 'pending']
 
+#            self.df['SOFA'] = pd.to_numeric(self.df['SOFA'], errors='coerce').astype('Int64')
 #            self.df['T_number'] = numbers
 #            self.df['Age'] = ages
 #            self.df['Admission'] = admissions
