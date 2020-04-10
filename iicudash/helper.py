@@ -215,7 +215,6 @@ class Icca_Intervention(implements(I_Intervention)):
         cols = df.columns[0:2]
         df = df.loc[:,cols]
         df.rename(columns={cols[1] : self.name}, inplace=True)
-<<<<<<< HEAD
         
         ## Check for entires like '<5' or >5 and fix... (could be present in other string types)
         #if self.name = 'Bilirubin':
@@ -223,9 +222,6 @@ class Icca_Intervention(implements(I_Intervention)):
         df[self.name] = pd.to_numeric(df[self.name], errors='coerce')
         df.dropna(inplace=True)
         df = df.sort_values(by='time')
-=======
-        df[self.name] = df[self.name].astype(float)
->>>>>>> aef0e9c181df36041022d40e5ce5f2d32e5e8c57
         
         if self.name=='FiO2':
             df[self.name] /= float(100)
@@ -495,15 +491,9 @@ class Sofa_Score():
         elif (val<=40):
             respiratory = 2
             
-<<<<<<< HEAD
         if (val<=100) & mechvent:
             respiratory = 4
         elif (val<=200) & mechvent:
-=======
-        if (val<=13.3) & mechvent:
-            respiratory = 4
-        elif (val<=26.7) & mechvent:
->>>>>>> aef0e9c181df36041022d40e5ce5f2d32e5e8c57
                 respiratory = 3
         return respiratory
     

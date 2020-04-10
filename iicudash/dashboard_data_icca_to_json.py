@@ -1,5 +1,6 @@
-# -*- coding: utf-8 -*-
+from helper import icca_query
+import pandas as pd
 
-import pyodbc
+df = pd.read_excel('COVID_interventions_attributes.xlsx', sheet_name='PtAssessment')
 
-print("Testing connection to server UHBNT455")
+print(df)
