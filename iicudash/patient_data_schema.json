@@ -1,0 +1,499 @@
+{
+  "parameters": [
+    {
+      "name": "SOFA",
+      "description": "SOFA (sequential organ failure assessment) score",
+      "unit": null,
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Net Body Balance",
+      "description": "Fluid balance: net value over 24 hours, reset at midnight",
+      "unit": "ml",
+      "type": "PtTotalBalance",
+      "system": "breathing"
+    },
+    {
+      "name": "SpO2",
+      "description": "Oxygen saturation",
+      "unit": "%",
+      "type": "PtAssessment",
+      "system": "breathing"
+    },
+    {
+      "name": "COVID-19",
+      "description": "Test results for the COVID-19",
+      "unit": null,
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "VT/kg",
+      "description": "Tidal volume per kg of ideal body weight",
+      "unit": "ml/kg",
+      "type": "PtAssessment",
+      "system": "breathing"
+    },
+    {
+      "name": "FiO2",
+      "description": "Fraction of inspired oxygen",
+      "unit": null,
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "PEEP",
+      "description": "Positive end expiratory pressure",
+      "unit": "cmH2O",
+      "type": "PtAssessment",
+      "system": "breathing"
+    },
+    {
+      "name": "pH",
+      "description": "Serum pH",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "BE",
+      "description": "Base excess",
+      "unit": "mmol/L",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Position",
+      "description": "Is the patient prone or supine",
+      "unit": null,
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Hours in position",
+      "description": "Number of hours in current position. (Note: if more than 3 days invalid and do not display).",
+      "unit": "hours",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Noradrenaline",
+      "description": "Dosage of noradrenaline (vasopressor).",
+      "unit": "mg/ml",
+      "type": "PtMedication",
+      "system": "breathing"
+    },
+    {
+      "name": "P/F ratio",
+      "description": "PaO2/FiO2, indicates severity of lung disease",
+      "unit": null,
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Dynamic compliance",
+      "description": "Ventilator parameter ~ tidal volume/(inspiratory pressure - PEEP)",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Physiological deadspace",
+      "description": "Ventilator parameter ~ tidal volume * ventilator ratio",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Treadtable deadspace",
+      "description": "Ventilator parameter ~ physiological deadspace - (Ideal body weight * 2.2)",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Ventilator ratio",
+      "description": "Ventilator parameter ~ (PaCO2 - EtCO2)/PaCO2",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "RSBI",
+      "description": "Rapid shallow breathing index ~ spontaneous RR / tidal volume in litres",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Duration of mechanical ventilation",
+      "description": "How many hours has this patient been on a ventilator",
+      "units": "hours",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "CAM-ICU",
+      "description": "Confusion assessment method score",
+      "type": "PtAssessment",
+      "system": "breathing"
+    },
+    {
+      "name": "Albumin",
+      "description": "Serum albumin",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "CRP",
+      "description": "C-reactive protein",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "PCT",
+      "description": "Procaciltonin",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Neutrophil:Lymphocyte",
+      "description": "Neutrophil:Lymphocyte ratio",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Platelet:Lymphocyte",
+      "description": "Platelet:Lymphocyte ratio",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Neutrophils",
+      "description": "Neutrophil count",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Lymphocyte",
+      "description": "Lymphocyte count",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Platelet",
+      "description": "Lymphocyte count",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "DIC-score",
+      "description": "Disseminated intravascular coagulation score",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "GCS",
+      "description": "Glasgow Coma Score",
+      "type": "PtAssessment",
+      "system": "breathing"
+    },
+    {
+      "name": "Airway",
+      "description": "String indicating airway/breathing support",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "RASS",
+      "description": "Richmond agitation-sedation scale",
+      "type": "PtAssessment",
+      "system": "breathing"
+    },
+    {
+      "name": "Sedated",
+      "description": "String indicating names and dosages of sedatives (if in use).",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Nutrition",
+      "description": "String indication type of feeding in use (enternal, parenteral, jejunal)",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "Haemofiltration",
+      "description": "Boolean indicating presence of renal support.",
+      "unit": "hours",
+      "type": "derived",
+      "system": "breathing"
+    },
+    {
+      "name": "D-dimer",
+      "description": "Inflammatory marker",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Ferritin",
+      "description": "Inflammatory marker",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    
+    {
+      "name": "Haemoglobin",
+      "description": "Serum haemoglobin",
+      "type": "PtLabResult",
+      "system": "cardiovascular"
+    },
+    {
+      "name": "ALT",
+      "description": "Alanine aminotransferase",
+      "type": "PtLabResult",
+      "system": "liver"
+    },
+    {
+      "name": "APTT",
+      "description": "Hyper-Coagulation marker",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Fibrinogen",
+      "description": "Hyper-Coagulation marker",
+      "type": "PtLabResult",
+      "system": "breathing"
+    },
+    {
+      "name": "Family",
+      "description": "Summary info on patient relatives",
+      "type": "derived",
+      "system": "breathing"
+    }
+  ],
+  "values": [
+      {
+        "bedId": "GICU 19",
+        "dataPoints": [
+          {
+            "name": "SOFA",
+            "value": 20,
+            "style": "bad",
+            "previous": 16
+          },
+          {
+            "name": "Net Body Balance",
+            "value": 450,
+            "style": "normal",
+            "previous": 1500
+          },
+          {
+            "name": "SpO2",
+            "value": 85,
+            "style": "warning",
+            "previous": 85
+          },
+          {
+            "name": "COVID-19",
+            "value": "positive",
+            "style": "bad"
+          },
+          {
+            "name": "VT/kg",
+            "value": 0.8,
+            "style": "warning",
+            "previous": 0.9
+          },
+          {
+            "name": "FiO2",
+            "value": 0.4,
+            "style": "warning",
+            "previous": 0.35
+          },
+          {
+            "name": "PEEP",
+            "value": 10,
+            "style": "normal",
+            "previous": 10
+          },
+          {
+            "name": "pH",
+            "value": 8.5,
+            "style": "normal",
+            "previous": 8.5
+          },
+          {
+            "name": "BE",
+            "value": -0.5,
+            "style": "invalid",
+            "previous": 1.5
+          },
+          {
+            "name": "Position",
+            "value": "prone",
+            "style": "normal",
+            "previous": "prone"
+          },
+          {
+            "name": "Hours in position",
+            "value": 2,
+            "style": "normal"
+          },
+          {
+            "name": "Noradrenaline",
+            "value": 0.2,
+            "style": "warning",
+            "previous": 0
+          },
+          {
+            "name": "P/F ratio",
+            "value": 100,
+            "style": "normal"
+          },
+          {
+            "name": "Driving pressure",
+            "value": 5.1,
+            "style": "normal"
+          },
+          {
+            "name": "Static compliance",
+            "value": 5.2,
+            "style": "warning",
+            "previous": 5.3
+          },
+          {
+            "name": "Dynamic compliance",
+            "value": 5.4,
+            "style": "inactive"
+          },
+          {
+            "name": "Physiological deadspace",
+            "value": 5.5,
+            "style": "bad"
+          },
+          {
+            "name": "Treadtable deadspace",
+            "value": null,
+            "style": "good",
+            "previous": 5.6
+          },
+          {
+            "name": "Ventilator ratio",
+            "value": -1,
+            "style": "good",
+            "previous": null
+          },
+          {
+            "name": "RSBI",
+            "value": 110,
+            "style": "warning"
+          },
+          {
+            "name": "Duration of mechanical ventilation",
+            "value": 72,
+            "style": "normal"
+          },
+          {
+            "name": "CAM-ICU",
+            "value": 10,
+            "style": "good",
+            "previous": 5
+          },
+          {
+            "name": "Albumin",
+            "value": 6.2,
+            "style": "good"
+          },
+          {
+            "name": "CRP",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "PCT",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Neutrophil:Lymphocyte",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Platelet:Lymphocyte",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Neutrophil",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Lymphocyte",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Platelet",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "DIC-score",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "GCS",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Airway",
+            "value": "CPAP",
+            "style": "normal"
+          },
+          {
+            "name": "RASS",
+            "value": 105,
+            "style": "bad"
+          },
+          {
+            "name": "Sedated",
+            "value": "Diazepan 0.2mg/kg/hr",
+            "style": "normal"
+          },
+          {
+            "name": "Nutrition",
+            "value": "jejunal tube",
+            "style": "normal"
+          },
+          {
+            "name": "Haemofiltration",
+            "value": "True"
+          },
+          {
+            "name": "D-dimer",
+            "value": null
+          },
+          {
+            "name": "Ferritin",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "APTT",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Fibrinogen",
+            "value": 105,
+            "style": "normal"
+          },
+          {
+            "name": "Family",
+            "description": "Wife and children in contact"
+          }
+        ]
+      }
+    ]
+}

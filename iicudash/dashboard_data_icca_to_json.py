@@ -15,10 +15,11 @@ if __name__=='__main__':
     #   Note: when this script is scheduled a timeout setting will be added. If the script times out the old json data will be used.
     database_tables = ['PtAssessment', 'PtLabResult', 'PtDemographic']
     interventions_attributes = dict()
+    icca_query_results = dict()
     
     for table in database_tables:
-        interventions_attributes[table] = pd.read_excel('COVID_interventions_attributes.xlsx', sheet_name='PtAssessment')
-        sql = """SELECT P.encounterId as encounterId, P.chartTime, DI.longLabel, DA.shortLabel, P.valueNumber, P.valueString, DI.interventionId as interventionId, DA.attributeId as attributeId 
+        interventions_attributes[table] = pd.read_excel('COVID_interventions_attributes.xlsx', sheet_name=table)
+        sql = """SELECT P.encounterId as encounterId, P.chartTime as chartTime, DI.longLabel, DA.shortLabel, P.valueNumber, P.valueString, DI.interventionId as interventionId, DA.attributeId as attributeId 
         FROM
         """ + table +  """ P
         INNER JOIN D_Intervention DI
@@ -28,29 +29,29 @@ if __name__=='__main__':
         WHERE P.encounterId in (SELECT encounterId from PtBedStay where outTime is null and clinicalUnitId in (5,8)) AND DI.interventionId in 
         """ + str(tuple(interventions_attributes[table].interventionId)) + " AND DA.attributeId in " + str(tuple(interventions_attributes[table].attributeId))
         
-    ptassessment_results = icca_query(sql)
-    
-
-    df_l = pd.read_excel('COVID_interventions_attributes.xlsx', sheet_name='PtLabresult')
-    sql = """SELECT P.encounterId as encounterId, P.chartTime, DI.longLabel, DA.shortLabel, P.valueNumber, P.valueString, DI.interventionId as interventionId, DA.attributeId as attributeId FROM PtLabResult P
-    INNER JOIN D_Intervention DI
-    ON P.interventionId=DI.interventionId 
-    INNER JOIN D_Attribute DA
-    ON P.attributeId=DA.attributeId
-    WHERE P.encounterId in (SELECT encounterId from PtBedStay where outTime is null and clinicalUnitId in (5,8)) AND DI.interventionId in 
-    """ + str(tuple(df_l.interventionId)) + " AND DA.attributeId in " + str(tuple(df_l.attributeId))
-    
-    ptlabresult_results = icca_query(sql)
+        icca_query_results[table] = icca_query(sql)
+#    
+#
+#    df_l = pd.read_excel('COVID_interventions_attributes.xlsx', sheet_name='PtLabresult')
+#    sql = """SELECT P.encounterId as encounterId, P.chartTime, DI.longLabel, DA.shortLabel, P.valueNumber, P.valueString, DI.interventionId as interventionId, DA.attributeId as attributeId FROM PtLabResult P
+#    INNER JOIN D_Intervention DI
+#    ON P.interventionId=DI.interventionId 
+#    INNER JOIN D_Attribute DA
+#    ON P.attributeId=DA.attributeId
+#    WHERE P.encounterId in (SELECT encounterId from PtBedStay where outTime is null and clinicalUnitId in (5,8)) AND DI.interventionId in 
+#    """ + str(tuple(df_l.interventionId)) + " AND DA.attributeId in " + str(tuple(df_l.attributeId))
+#    
+#    ptlabresult_results = icca_query(sql)
     
     
     sql = "SELECT * FROM UHB.SOFA_python"
-    sofa = icca_query(sql, db='CISReportingDB')
-#    #print(sofa)
+    icca_query_results['Sofa'] = icca_query(sql, db='CISReportingDB')
     
     sql = 'SELECT bedLabel, encounterId FROM PtBedStay WHERE outTime is null and clinicalUnitId in (5,8)'
-    beds = icca_query(sql)
+    icca_query_results['Beds'] = icca_query(sql)
     
-    
+    # Should 'derived' have capital letter (in schema)
+    # Refactor to use classes to avoid passing around vaiables between functions e.g. icca_query_results etc..
     # Need to combine FiO2 across PtAssessment and PtLabResults dataframes
     # Need to compute Ventilator parameters from Kieron/Stefan formulae
     # Need to work out what to do about 'No Bed' patients - some are valid, some are not?
@@ -93,16 +94,34 @@ if __name__=='__main__':
                    'previous': previous
                    }
         
+        
+    def get_highest_priority_records_for_this_encounter(encounterId, icca_query_results, interventions_attributes, table):
+        # There may be multiple intervention and attributes for the same parameter (e.g. heart rate encoded multiple way).
+        # This function takes the most recent record and then, if there are multiple records at the same hour, 
+        #  takes the value with the highest 'priorty' (in the excel table)
+        
+        patient_results = icca_query_results[table].loc[icca_query_results[table].encounterId==encounter]
+     
+        patient_results = patient_results.merge(interventions_attributes[table], 
+                                                on=['interventionId', 'attributeId'], how='inner')
+    
+        patient_results = patient_results.loc[patient_results.reset_index().sort_values(by=['chartTime', 'priority'], ascending=[False,True]).groupby('vname')['chartTime'].idxmax()]
+        
+        return patient_results
+    
+    
     def build_bed_value_dict(bedId, encounterId, schema):
         bvd = {'bedId': bedId, 'dataPoints': []}
     
-        patient_labs = ptlabresult_results.loc[ptlabresult_results.encounterId==encounter]
-        patient_labs = patient_labs.merge(df_l, on=['interventionId', 'attributeId'], how='inner')
-        patient_labs = patient_labs.loc[patient_labs.reset_index().groupby('vname')['priority'].idxmax()]
-        
-        patient_assess = ptassessment_results.loc[ptassessment_results.encounterId==encounter]
-        patient_assess = patient_assess.merge(df_a, on=['interventionId', 'attributeId'], how='inner')
-        patient_assess = patient_assess.loc[patient_assess.reset_index().groupby('vname')['priority'].idxmax()]
+        patient_labs = get_highest_priority_records_for_this_encounter(encounterId, icca_query_results, interventions_attributes, 'PtLabResult')
+        patient_assess = get_highest_priority_records_for_this_encounter(encounterId, icca_query_results, interventions_attributes, 'PtAssessment')
+#        patient_labs = ptlabresult_results.loc[ptlabresult_results.encounterId==encounter]
+#        patient_labs = patient_labs.merge(df_l, on=['interventionId', 'attributeId'], how='inner')
+#        patient_labs = patient_labs.loc[patient_labs.reset_index().groupby('vname')['priority'].idxmax()]
+#        
+#        patient_assess = ptassessment_results.loc[ptassessment_results.encounterId==encounter]
+#        patient_assess = patient_assess.merge(df_a, on=['interventionId', 'attributeId'], how='inner')
+#        patient_assess = patient_assess.loc[patient_assess.reset_index().groupby('vname')['priority'].idxmax()]
         
         beds = [value['bedId'] for value in schema['values']]
         bed_data_points = schema['values'][beds.index(bedId)]['dataPoints'] if bedId in beds else None
@@ -114,7 +133,7 @@ if __name__=='__main__':
         return bvd
        
     
-    for bed,encounter in zip(beds.bedLabel,beds.encounterId):
+    for bed,encounter in zip(icca_query_results['Beds'].bedLabel,icca_query_results['Beds'].encounterId):
         data_dict['values'].append(build_bed_value_dict(bed, encounter, schema))
          
 
