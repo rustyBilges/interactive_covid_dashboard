@@ -84,7 +84,7 @@
       "system": "breathing"
     },
     {
-      "name": "P/F ratio",
+      "name": "P/F Ratio",
       "description": "PaO2/FiO2, indicates severity of lung disease",
       "unit": null,
       "type": "derived",

@@ -3,9 +3,9 @@ import pandas as pd
 import json
 
 if __name__=='__main__':
-#   
-    with open('patient_data_schema.json', 'r') as read_file:
-#    with open('patient_data.json', 'r') as read_file:
+   
+#    with open('patient_data_schema.json', 'r') as read_file:
+    with open('patient_data.json', 'r') as read_file:
         schema = json.load(read_file) 
     
     # This is to store the data that will be saved in the new json file for display on the summary table view of the dashboard
@@ -42,12 +42,10 @@ if __name__=='__main__':
     # Need to combine FiO2 across PtAssessment and PtLabResults dataframes
     # Need to compute Ventilator parameters from Kieron/Stefan formulae
     # Need to work out what to do about 'No Bed' patients - some are valid, some are not?
-    # Need to add valueNumber or valueString indicator to excel file. 
     # Need to set time out when scheduling this on server...if timeout, revert to old josn?
     
-    # need a clever way of looping over variables that are in the schema, working out whether to extract them from PtAssessment etc, or compute them,and if they are stored in valueString or valueNumber, and how to apply condition formatting, and get previous value 
+    # need a clever way of defining stylings..
     
-    # need a celever way of defining stylings..
     ## Need two levels of script/task for the timeout scheduling? (otheriwse might timeout during write of new json and corrupt the file -> add if corrupt fn to front end?)
     # Should go through list of intervention and attibutes with a doctor (Kieron) to check prioities and definitions and units.
     
@@ -66,24 +64,79 @@ if __name__=='__main__':
         return patient_results
     
     
-    def get_derived_value(parameter):
-        return None
+    def get_variable_value(patient_results, table, variable):
+        value = patient_results[table].loc[patient_results[table].vname==variable]
+        
+        if len(value)>0:
+            value = value.iloc[0]
+            value = value[value.column]
+        else:
+            value = None
+        return value
+    
+    def get_derived_value(parameter, patient_results):
+        # Possibly this should use an abstract base class pattern?
+        name = parameter['name']
+        value = None
+        
+        if  name == 'FiO2':
+            value = patient_results['PtAssessment'].loc[patient_results['PtAssessment'].vname==name]   # Refactor to make a function for this!!!!
+            value = value.append(patient_results['PtLabResult'].loc[patient_results['PtLabResult'].vname==name], sort=False)
+            value = value.loc[value.chartTime.idxmax()] if len(value)>0 else None
+            value = value[value.column] if value is not None else None
+            
+        elif name == 'P/F Ratio':
+            value = get_variable_value(patient_results, 'PtAssessment', name)
+            if value is None:
+                # If ratio not recorded, try to compute from individuals records...
+                # CAREFUL WITH UNITS WHEN IMPLEMENTING THIS!
+                value = None
+        
+        elif name == 'Ventilator ratio':
+            
+            etco2 = get_variable_value(patient_results, 'PtAssessment','EtCO2')
+            paco2 = get_variable_value(patient_results, 'PtLabResult','PaCO2')
+            if etco2 is not None and paco2 is not None:
+                value = (paco2 - etco2)/float(paco2)
+          
+        else:
+            value = None
+        
+        return value
+    
+#    How to make this nice and concise?!
+    def get_style(value, parameter_name):
+        
+#        styles = ['normal', 'good', 'warning', 'bad', 'invalid', 'inactive']
+        high_means_bad_parameters = ['VT/kg', 'etc...']
+        lb = 6.0
+        ub = 8.0
+        
+        if value is None:
+            return 'inactive'
+        
+        elif parameter_name in high_means_bad_parameters:
+            
+            if value > ub:
+                return 'bad'
+            elif value > lb:
+                return 'warning'
+            else:
+                return 'normal'
+            
+        else:
+            return 'normal'
     
     
     def get_parameter_value_dict(parameter, bed_data_points, patient_results, interventions_attributes):
         
         param_type = parameter['type']
+        
         if param_type in database_tables:
-            
-            value = patient_results[param_type].loc[patient_results[param_type].vname==parameter['name']]
-            if len(value>0):
-                value = value.iloc[0]
-                value = value[value.column]
-            else:
-                value = None
+            value = get_variable_value(patient_results, param_type, parameter['name'])
             
         elif param_type == 'derived':
-            value = get_derived_value(parameter)
+            value = get_derived_value(parameter, patient_results)
         
         else:
             value = None
@@ -93,7 +146,8 @@ if __name__=='__main__':
         
         return {'name': parameter['name'],
                    'value': value,
-                   'style': 'normal', # NEED TO DEFINE STYLING (IN EXCEL?)
+                   'style': get_style(value,  parameter['name']
+                   ),
                    'previous': previous
                    }    
         
