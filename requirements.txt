@@ -12,7 +12,7 @@ numpy==1.16.2
 pandas==0.24.1
 pathlib2==2.3.3
 pluggy==0.9.0
-py==1.8.0
+py==1.10.0
 pyodbc==4.0.26
 pytest==4.3.0
 python-dateutil==2.8.0
