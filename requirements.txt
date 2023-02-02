@@ -21,4 +21,4 @@ pytz==2018.9
 -e git+https://github.com/rustyBilges/rankapp.git@d1c3ba6547c7a856b23659973fe3e88707987c2c#egg=rankapp
 six==1.12.0
 typing==3.6.6
-Werkzeug==0.15.3
+Werkzeug==0.15.5
